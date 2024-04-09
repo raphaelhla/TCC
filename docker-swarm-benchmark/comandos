@@ -1,0 +1,14 @@
+executar esse comando para que o manager nao execute containers:
+	docker node update --availability drain <manager-ip>
+
+iniciar um serviço:
+	docker service create --name <imagem>
+
+remover um serviço:
+	docker service rm <nome>
+
+aumentando o numero de replicas:
+	docker service create --name --replicas <numero> <imagem>
+
+remover um worker:
+	docker node rm <node-ip>
