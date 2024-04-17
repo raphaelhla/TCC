@@ -92,7 +92,7 @@ def verificar_consumo_memoria_hosts(lista_hosts, private_key):
 
 def verifica_pods_running(api_core_v1, num_replicas):
     resp = api_core_v1.list_namespaced_pod(namespace="default")
-    running_pods = [pod for pod in resp.items if pod.status.phase == "Running" and pod.metadata.labels.get('app') == 'pingpod']
+    running_pods = [pod for pod in resp.items if pod.status.phase == "Running" and pod.metadata.labels.get('app') == 'ping-pod']
 
     if len(running_pods) == num_replicas:
         return True
@@ -106,14 +106,14 @@ def calcula_tempo_criacao_deployment(api_instance, api_core_v1, deployment_name,
         metadata=client.V1ObjectMeta(name=deployment_name),
         spec=client.V1DeploymentSpec(
             replicas=num_replicas,
-            selector={'matchLabels': {'app': 'pingpod'}},
+            selector=client.V1LabelSelector(match_labels={"app": "ping-pod"}),
             template=client.V1PodTemplateSpec(
-                metadata=client.V1ObjectMeta(labels={'app': 'pingpod'}),
+                metadata=client.V1ObjectMeta(labels={'app': 'ping-pod'}),
                 spec=client.V1PodSpec(
                     containers=[client.V1Container(
-                        name="pingpod",
+                        name="ping-pod",
                         image=image,
-                        ports=[client.V1ContainerPort(container_port=80)])]))))
+                        ports=[client.V1ContainerPort(container_port=8080)])]))))
 
     # Cria o Deployment
     api_instance.create_namespaced_deployment(
@@ -150,7 +150,7 @@ if __name__ == "__main__":
     private_key_path = "/home/ubuntu/raphael-key.pem"
     private_key = paramiko.RSAKey.from_private_key_file(private_key_path)
 
-    deployment_name = "pingpod-deployment"
+    deployment_name = "ping-pod-deployment"
     image = "raphaelhla/ping-pod"
     num_replicas = int(input("Digite o número de replicas: "))
     num_testes = int(input("Digite o número de testes: "))
