@@ -89,7 +89,7 @@ def verificar_consumo_memoria_hosts(lista_hosts, private_key):
         result.append(mem_ram)
     return result
 
-def cria_servico_e_aguarda(client, service_name, image, replicas):
+def calcula_tempo_criacao_servico(client, service_name, image, replicas):
     # Cria o serviço com o número especificado de réplicas
     service = client.services.create(
         image=image,
@@ -106,7 +106,7 @@ def cria_servico_e_aguarda(client, service_name, image, replicas):
 
     print(f" * Serviço {service_name} criado com {replicas} réplicas. Aguardando todas ficarem prontas...")
 
-    start_time = time.time()
+    tempo_inicial = time.time()
     while True:
         service.reload()
         tasks = service.tasks()
@@ -118,10 +118,10 @@ def cria_servico_e_aguarda(client, service_name, image, replicas):
         if running_tasks == replicas:
             break
 
-    end_time = time.time()
-    total_time = end_time - start_time
-    print(f" * Todas as réplicas estão prontas. Tempo total: {total_time:.2f} segundos.")
-    return total_time
+    tempo_final = time.time()
+    tempo_total = tempo_final - tempo_inicial
+    print(f" * Todas as réplicas estão prontas. Tempo total: {tempo_total:.2f} segundos.")
+    return tempo_total
 
 def remove_servico(client, service_name):
     try:
@@ -156,7 +156,7 @@ if __name__ == "__main__":
         ram_antes = verificar_consumo_memoria_hosts(workers, private_key)
         time.sleep(1)
 
-        tempo_gasto = cria_servico_e_aguarda(client, service_name, image, replicas)
+        tempo_gasto = calcula_tempo_criacao_servico(client, service_name, image, replicas)
         time.sleep(5)
         
         cpu_depois = verificar_consumo_cpu_hosts(workers, private_key)
