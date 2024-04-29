@@ -116,11 +116,26 @@ def calcula_tempo_criacao_deployment(api_instance, api_core_v1, deployment_name,
                         ports=[client.V1ContainerPort(container_port=8080)])]))))
 
     # Cria o Deployment
-    api_instance.create_namespaced_deployment(
-        body=deployment,
-        namespace="default")
+    #api_instance.create_namespaced_deployment(
+    #    body=deployment,
+    #    namespace="default")
 
-    print(f" * Deployment '{deployment_name}' criado com {num_replicas} pods. Aguardando todos ficarem no estado 'Running'...")
+    while True:
+        try:
+            api_instance.create_namespaced_deployment(
+                body=deployment,
+                namespace="default")
+            print(f" * Deployment '{deployment_name}' criado com {num_replicas} pods. Aguardando todos ficarem no estado 'Running'...")
+            break
+        except ApiException as e:
+            if e.status == 409:
+                print(f" * Deployment '{deployment_name}' ainda existe, tentando novamente em 10 segundos...")
+                time.sleep(10)
+            else:
+                raise e
+
+
+    #print(f" * Deployment '{deployment_name}' criado com {num_replicas} pods. Aguardando todos ficarem no estado 'Running'...")
 
     tempo_inicial = time.time()
     while True:
@@ -146,7 +161,7 @@ def remove_deployment(api_instance, deployment_name):
 
 
 if __name__ == "__main__":
-    workers = ["54.173.90.101", "54.208.161.152"]
+    workers = ["54.89.57.5", "3.88.148.144"]
     private_key_path = "/home/ubuntu/raphael-key.pem"
     private_key = paramiko.RSAKey.from_private_key_file(private_key_path)
 
