@@ -2,7 +2,7 @@
 ### INSTALAÇÃO DE PRÉ REQUISITOS
 Instale o python3-pip:
 ```bash
-sudo apt install python3-pip
+sudo apt install python3-pip -y
 ```
 
 Execute o comando no mesmo diretório do script:
