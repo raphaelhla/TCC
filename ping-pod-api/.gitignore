@@ -1,0 +1,25 @@
+# Arquivos de log
+logs/
+
+# Arquivos de dependências
+node_modules/
+
+# Arquivos de ambiente
+.env
+
+# Arquivos de build
+/build/
+
+# Arquivos de configuração específicos do ambiente
+/config/env/*.env
+
+# Arquivos de cache
+.cache/
+
+# Arquivos de backup
+*.bak
+
+# Arquivos de cache do editor
+.vscode/
+*.swp
+
