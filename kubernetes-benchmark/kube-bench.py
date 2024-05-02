@@ -2,6 +2,7 @@ from kubernetes import client, config
 from kubernetes.client.rest import ApiException
 import time
 import paramiko
+import sys
 
 def calcular_media(lista):
     if not lista:
@@ -9,10 +10,11 @@ def calcular_media(lista):
 
     soma = sum(lista)
     media = soma / len(lista)
+    media = round(media, 2)
 
     return media
 
-def gerar_mensagem(num_replicas, num_testes, historico_tempo, historico_ram, historico_cpu):
+def gerar_mensagem(num_replicas, num_testes, imagem, historico_tempo, historico_ram, historico_cpu):
     media_tempo = calcular_media(historico_tempo)
     media_ram = calcular_media(historico_ram)
     media_cpu = calcular_media(historico_cpu)
@@ -20,6 +22,7 @@ def gerar_mensagem(num_replicas, num_testes, historico_tempo, historico_ram, his
     mensagem = [
         f"Número de replicas: {num_replicas}\n",
         f"Número de testes: {num_testes}\n",
+        f"Imagem: {imagem}\n",
         f"Tempo médio gasto: {media_tempo}\n",
         f"Uso médio de RAM: {media_ram}\n",
         f"Uso médio de CPU: {media_cpu}\n",
@@ -39,37 +42,58 @@ def escrever_mensagem_arquivo(mensagem, nome_arquivo):
         print(f"Ocorreu um erro ao escrever no arquivo: {e}")
 
 def obter_consumo_cpu_ssh(host, private_key):
-    ssh_client = paramiko.SSHClient()
-    ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh_client.connect(hostname=host, username="ubuntu", pkey=private_key)
+    while True:
+        try:
+            ssh_client = paramiko.SSHClient()
+            ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            ssh_client.connect(hostname=host, username="ubuntu", pkey=private_key)
 
-    comando = "top -bn1 | grep '^%Cpu(s)' | awk -F '[, ]+' '{print 100 - $8 - $16}'"
-    stdin, stdout, stderr = ssh_client.exec_command(comando)
+            comando = 'top -bn2 | grep "Cpu(s)" | awk \'{print $2 + $4}\' | tail -n1'
 
-    output = stdout.read().decode().strip()
-    cpu_usado = float(output)
+            stdin, stdout, stderr = ssh_client.exec_command(comando)
 
-    ssh_client.close()
+            output = stdout.read().decode().strip()
+            cpu_usado = float(output)
+            break
+        except paramiko.ssh_exception.AuthenticationException as e:
+            print("Erro de autenticação SSH para o worker: ", host) #:", e)
+        except paramiko.ssh_exception.SSHException as e:
+            print("Erro no SSH para o worker: ", host) #", e)
+        except Exception as e:
+            print("Erro inesperado no SSH para o worker: ", host) #", e)
+        finally:
+            ssh_client.close()
 
-    print(f" * Consumo de CPU atual: {cpu_usado:.2f}%")
+    cpu_usado = round(cpu_usado, 2)
+    print(f" * Consumo de CPU atual: {cpu_usado}%")
 
     return cpu_usado
 
 def obter_consumo_memoria_ssh(host, private_key):
-    ssh_client = paramiko.SSHClient()
-    ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh_client.connect(hostname=host, username="ubuntu", pkey=private_key)
+    while True:
+        try:
 
-    comando = "free -m | grep Mem | awk '{print $3,$2}'"
-    stdin, stdout, stderr = ssh_client.exec_command(comando)
+            ssh_client = paramiko.SSHClient()
+            ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            ssh_client.connect(hostname=host, username="ubuntu", pkey=private_key)
 
-    output = stdout.read().decode().strip().split()
-    mem_usada_mb = float(output[0])
-    mem_total_mb = float(output[1])
+            comando = "free -m | grep Mem | awk '{print $3,$2}'"
+            stdin, stdout, stderr = ssh_client.exec_command(comando)
 
-    consumo_percentual = (mem_usada_mb / mem_total_mb) * 100
+            output = stdout.read().decode().strip().split()
+            mem_usada_mb = float(output[0])
+            mem_total_mb = float(output[1])
 
-    ssh_client.close()
+            consumo_percentual = (mem_usada_mb / mem_total_mb) * 100
+            break
+        except paramiko.ssh_exception.AuthenticationException as e:
+            print("Erro de autenticação SSH para o worker: ", host) #:", e)
+        except paramiko.ssh_exception.SSHException as e:
+            print("Erro no SSH para o worker: ", host) #", e)
+        except Exception as e:
+            print("Erro inesperado no SSH para o worker: ", host) #", e)
+        finally:
+            ssh_client.close()
     
     #print(f" * Porcentagem de memória RAM atual: {consumo_percentual:.2f}%")
     print(f" * Consumo de memória RAM atual: {mem_usada_mb:.2f} MB")
@@ -98,6 +122,16 @@ def verifica_pods_running(api_core_v1, num_replicas):
         return True
     return False
 
+
+def verifica_pods_encerrados(api_core_v1, deployment_name):
+    try:
+        pods = api_core_v1.list_namespaced_pod(namespace="default", label_selector='app=ping-pod').items
+        return len(pods) == 0
+    except ApiException as e:
+        print(f"Erro ao listar os pods do deployment {deployment_name}: {e}")
+        return False
+
+
 def calcula_tempo_criacao_deployment(api_instance, api_core_v1, deployment_name, image, num_replicas):
     # Configuração do Deployment
     deployment = client.V1Deployment(
@@ -115,11 +149,6 @@ def calcula_tempo_criacao_deployment(api_instance, api_core_v1, deployment_name,
                         image=image,
                         ports=[client.V1ContainerPort(container_port=8080)])]))))
 
-    # Cria o Deployment
-    #api_instance.create_namespaced_deployment(
-    #    body=deployment,
-    #    namespace="default")
-
     while True:
         try:
             api_instance.create_namespaced_deployment(
@@ -134,9 +163,6 @@ def calcula_tempo_criacao_deployment(api_instance, api_core_v1, deployment_name,
             else:
                 raise e
 
-
-    #print(f" * Deployment '{deployment_name}' criado com {num_replicas} pods. Aguardando todos ficarem no estado 'Running'...")
-
     tempo_inicial = time.time()
     while True:
         if verifica_pods_running(api_core_v1, num_replicas):
@@ -144,6 +170,7 @@ def calcula_tempo_criacao_deployment(api_instance, api_core_v1, deployment_name,
 
     tempo_final = time.time()
     tempo_total = tempo_final - tempo_inicial
+    tempo_total = round(tempo_total, 2)
     print(f" * Todas os {num_replicas} pods estão no estado 'Running'. Tempo total: {tempo_total:.2f} segundos.")
 
     return tempo_total
@@ -161,15 +188,23 @@ def remove_deployment(api_instance, deployment_name):
 
 
 if __name__ == "__main__":
-    workers = ["54.89.57.5", "3.88.148.144"]
+    workers = ["", ""]
     private_key_path = "/home/ubuntu/raphael-key.pem"
     private_key = paramiko.RSAKey.from_private_key_file(private_key_path)
 
     deployment_name = "ping-pod-deployment"
-    image = "raphaelhla/ping-pod"
-    num_replicas = int(input("Digite o número de replicas: "))
-    num_testes = int(input("Digite o número de testes: "))
+    image = "raphaelhla/ping-pod:1.0"
 
+    if len(sys.argv) == 1:
+        num_replicas = int(input("Digite o número de replicas: "))
+        num_testes = int(input("Digite o número de testes: "))
+    elif len(sys.argv) == 3:
+        num_replicas = int(sys.argv[1])
+        num_testes = int(sys.argv[2])
+    else:
+        print("Uso: python3 kube-bench.py <numero_de_pods> <numero_de_testes>")
+        sys.exit(1)
+   
     historico_tempo = []
     historico_cpu = []
     historico_ram = []
@@ -179,30 +214,33 @@ if __name__ == "__main__":
     api_core_v1 = client.CoreV1Api()  
     
     for i in range(1, num_testes + 1):
-        print(f"\nTeste {i}")
+        print(f"\nTeste {i}:")
         
-        cpu_antes = verificar_consumo_cpu_hosts(workers, private_key)
+        #cpu_antes = verificar_consumo_cpu_hosts(workers, private_key)
         ram_antes = verificar_consumo_memoria_hosts(workers, private_key)
-        time.sleep(1)
+        time.sleep(2)
 
         tempo_gasto = calcula_tempo_criacao_deployment(api_instance, api_core_v1, deployment_name, image, num_replicas)
-        time.sleep(5)
+        time.sleep(25)
         
         cpu_depois = verificar_consumo_cpu_hosts(workers, private_key)
         ram_depois = verificar_consumo_memoria_hosts(workers, private_key)
-        time.sleep(5)
+        time.sleep(2)
 
         remove_deployment(api_instance, deployment_name)
-        time.sleep(60)
+        while True:
+            if verifica_pods_encerrados(api_core_v1, deployment_name):
+                break
+        time.sleep(5)
     
         historico_tempo.append(tempo_gasto)
         for i in range(len(workers)):
-            diferenca_cpu = cpu_depois[i] - cpu_antes[i]
+            #diferenca_cpu = cpu_depois[i] - cpu_antes[i]
             diferenca_ram = ram_depois[i] - ram_antes[i]
 
-            historico_cpu.append(diferenca_cpu)        
+            historico_cpu.append(cpu_depois[i])        
             historico_ram.append(diferenca_ram)
 
-    result = gerar_mensagem(num_replicas, num_testes, historico_tempo, historico_ram, historico_cpu)
-    escrever_mensagem_arquivo(result, "result.txt")
+    result = gerar_mensagem(num_replicas, num_testes, image, historico_tempo, historico_ram, historico_cpu)
+    escrever_mensagem_arquivo(result, "resultados-t2-xlarge.txt")
 
