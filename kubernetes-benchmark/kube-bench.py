@@ -57,10 +57,13 @@ def obter_consumo_cpu_ssh(host, private_key):
             break
         except paramiko.ssh_exception.AuthenticationException as e:
             print("Erro de autenticação SSH para o worker: ", host) #:", e)
+            time.sleep(3)
         except paramiko.ssh_exception.SSHException as e:
             print("Erro no SSH para o worker: ", host) #", e)
+            time.sleep(3)
         except Exception as e:
             print("Erro inesperado no SSH para o worker: ", host) #", e)
+            time.sleep(3)
         finally:
             ssh_client.close()
 
@@ -88,10 +91,13 @@ def obter_consumo_memoria_ssh(host, private_key):
             break
         except paramiko.ssh_exception.AuthenticationException as e:
             print("Erro de autenticação SSH para o worker: ", host) #:", e)
+            time.sleep(3)
         except paramiko.ssh_exception.SSHException as e:
             print("Erro no SSH para o worker: ", host) #", e)
+            time.sleep(3)
         except Exception as e:
             print("Erro inesperado no SSH para o worker: ", host) #", e)
+            time.sleep(3)
         finally:
             ssh_client.close()
     
