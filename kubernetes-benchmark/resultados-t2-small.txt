@@ -1,0 +1,40 @@
+Número de replicas: 1
+Número de testes: 10
+Imagem: raphaelhla/ping-pod:1.0
+Tempo médio gasto: 1.4
+Uso médio de RAM: 12.4
+Uso médio de CPU: 5.06
+Histórico de tempo: [1.5, 1.16, 1.18, 1.48, 1.43, 1.52, 1.51, 1.26, 1.42, 1.54]
+Histórico de RAM: [15.0, 0.0, 13.0, 24.0, 0.0, 30.0, 18.0, 0.0, 15.0, 0.0, 38.0, 0.0, 47.0, 4.0, 31.0, 0.0, -1.0, -1.0, 15.0, 0.0]
+Histórico de CPU: [4.4, 2.1, 4.4, 4.5, 4.5, 1.7, 4.4, 6.0, 4.7, 8.2, 7.8, 4.4, 8.8, 9.3, 4.0, 4.8, 1.7, 4.1, 4.7, 6.7]
+
+Número de replicas: 10
+Número de testes: 10
+Imagem: raphaelhla/ping-pod:1.0
+Tempo médio gasto: 3.51
+Uso médio de RAM: 169.0
+Uso médio de CPU: 5.14
+Histórico de tempo: [3.18, 3.15, 3.44, 3.6, 4.43, 3.24, 3.49, 3.75, 3.4, 3.45]
+Histórico de RAM: [188.0, 149.0, 171.0, 175.0, 164.0, 154.0, 164.0, 165.0, 169.0, 171.0, 196.0, 167.0, 162.0, 155.0, 169.0, 169.0, 167.0, 166.0, 179.0, 180.0]
+Histórico de CPU: [2.7, 1.7, 29.3, 1.4, 2.7, 5.8, 5.4, 6.1, 6.5, 5.7, 6.1, 5.0, 2.3, 1.7, 3.7, 4.0, 2.1, 6.1, 2.4, 2.1]
+
+Número de replicas: 25
+Número de testes: 10
+Imagem: raphaelhla/ping-pod:1.0
+Tempo médio gasto: 8.06
+Uso médio de RAM: 473.55
+Uso médio de CPU: 6.05
+Histórico de tempo: [7.77, 7.19, 7.68, 8.12, 9.97, 8.07, 7.14, 8.56, 7.35, 8.71]
+Histórico de RAM: [487.0, 446.0, 469.0, 449.0, 458.0, 501.0, 477.0, 518.0, 457.0, 499.0, 514.0, 451.0, 499.0, 450.0, 425.0, 472.0, 443.0, 498.0, 496.0, 462.0]
+Histórico de CPU: [7.5, 8.4, 4.7, 4.3, 6.7, 2.6, 7.8, 5.8, 2.0, 9.9, 6.8, 6.4, 8.8, 5.1, 2.4, 6.1, 8.2, 6.7, 2.8, 8.0]
+
+Número de replicas: 50
+Número de testes: 10
+Imagem: raphaelhla/ping-pod:1.0
+Tempo médio gasto: 15.33
+Uso médio de RAM: 943.4
+Uso médio de CPU: 5.92
+Histórico de tempo: [15.57, 16.54, 15.4, 14.56, 14.76, 14.71, 16.13, 14.72, 15.19, 15.7]
+Histórico de RAM: [948.0, 973.0, 959.0, 957.0, 963.0, 958.0, 933.0, 944.0, 932.0, 952.0, 925.0, 961.0, 956.0, 926.0, 905.0, 950.0, 912.0, 930.0, 943.0, 941.0]
+Histórico de CPU: [3.7, 8.1, 14.5, 4.7, 3.7, 6.1, 12.2, 5.1, 11.2, 5.4, 5.4, 5.1, 7.1, 8.4, 3.0, 3.4, 3.0, 1.9, 3.7, 2.7]
+
