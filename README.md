@@ -1,15 +1,19 @@
 # TCC
 ## PING POD
-O PING POD é uma API web simples que apresenta um único endpoint localizado em `/ping`. Este endpoint retorna uma string contendo o nome do contêiner (host) onde a API está em execução.
-
-A API oferece duas versões, diferenciadas exclusivamente pelo formato da string retornada pela rota `/ping`. Ambas as versões da API estão disponíveis no Docker Hub:
-- `raphaelhla/ping-pod:0.1`
-- `raphaelhla/ping-pod:0.2`
+O PING POD é uma API web simples utlizada nos testes de carga no TCC.
 
 ## KUBERNETES CLUSTER IMPLANTATION
 
+Documentação de todas as etapas necessárias para a implantação do cluster Kubernetes.
+
 ## KUBERNETES BENCHMARK
+
+Script de benchmark utilizado no cluster Kubernetes para coletar o tempo de inicialização, uso de cpu e memória dos containers.
 
 ## DOCKER SWARM CLUSTER IMPLANTATION
 
+Documentação de todas as etapas necessárias para a implantação do cluster Docker Swarm.
+
 ## DOCKER SWARM BENCHMARK
+
+Script de benchmark utilizado no cluster Docker Swarm para coletar o tempo de inicialização, uso de cpu e memória dos containers.
